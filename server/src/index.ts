@@ -1,35 +1,26 @@
 import express,{Express,Request,Response} from 'express';
 import http from 'http';
-import {Server} from 'socket.io';
-import cors from 'cors';
-
-import {roomHandler} from './socket/index';
-
-const port = 3001;
-
+import "dotenv/config";
+import mongoose from 'mongoose';
+import { readdirSync } from 'fs';
 const app : Express = express();
-app.use(cors)
+
 const server = http.createServer(app)
-const io=new Server(server,{
-    cors:{
-        origin:"*",
-        methods:["GET","POST"]
-    }
-});
-
-io.on("connection",(socket)=>{
-    console.log("a user connected");
-    roomHandler(socket);
-    socket.on("disconnect", () => {
-        console.log("user disconnected");
-    });
-})
-
+app.use(express.json());
 app.get("/",(req:Request,res:Response)=>{
     console.log(req.query);
     res.send("hiia");
 })
+readdirSync(__dirname+"/routes").map(async (r) => app.use("/api", (await import(__dirname+`/routes/${r}`)).default));
 
-server.listen(port,()=>{
-    console.log("start");
-})
+
+
+mongoose.connect(process.env.DB_STR as string).then(() => {
+    server.listen(process.env.PORT as string,()=>{
+        console.log("start");
+    })
+}).catch((err) => {
+    console.log("mongo error ", err)
+});
+
+
