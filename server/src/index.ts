@@ -13,12 +13,16 @@ app.get("/",(req:Request,res:Response)=>{
 })
 readdirSync(__dirname+"/routes").map(async (r) => app.use("/api", (await import(__dirname+`/routes/${r}`)).default));
 
+app.get("/:category-:type-:cid",(req:Request,res:Response)=>{
+    console.log(req.params);
+    res.send(`/bilgisayarlar-${req.params.type}-${req.params.cid}`)
+})
 
-
+server.listen(process.env.PORT as string,()=>{
+    console.log("start");
+})
 mongoose.connect(process.env.DB_STR as string).then(() => {
-    server.listen(process.env.PORT as string,()=>{
-        console.log("start");
-    })
+    
 }).catch((err) => {
     console.log("mongo error ", err)
 });
